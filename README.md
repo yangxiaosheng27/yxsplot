@@ -2,11 +2,11 @@
 
 **Smooth and interactive 2D plotting for large-scale datasets.**
 
-🌍 **Language: [English](#english) | [中文](#chinese)**
+🌍 **Language: [English](#english) | [中文](#中文)**
 
 ---
 
-## English {#english}
+## English
 
 `yxsplot` is a **user-friendly** Python visualization library built on top of **Matplotlib** and **mplcursors**. It is designed to help you **explore large datasets smoothly** by implementing automatic data decimation and compression. Beyond performance, it provides a comprehensive suite of native mouse interactions (zoom, pan, annotate, measure) without requiring complex event-handling code.
 
@@ -215,7 +215,7 @@ Copyright (c) 2026-present Xiaosheng Yang
 
 ---
 
-## 中文 {#chinese}
+## 中文
 
 `yxsplot` 是一个**用户友好型**的 Python 可视化库，基于 **Matplotlib** 和 **mplcursors** 构建。它旨在通过自动数据降采样和压缩技术，帮助你**流畅地探索大规模数据集**。除了性能优化，它还提供了全套原生的鼠标交互功能（缩放、平移、标注、测量），无需编写复杂的事件处理代码。
 
