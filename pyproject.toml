@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yxsplot"
+version = "0.1.0"
+description = "Smooth and interactive 2D plotting for large-scale datasets."
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+authors = [
+    { name = "Xiaosheng Yang" }
+]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "numpy>=1.26.4",
+    "matplotlib>=3.8.0",
+    "mplcursors>=0.5.3,<=0.7.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/yangxiaosheng27/yxsplot"
+Repository = "https://github.com/yangxiaosheng27/yxsplot"
+Changelog = "https://github.com/yangxiaosheng27/yxsplot/blob/master/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
