@@ -24,7 +24,7 @@
 
 | Action | Mouse / Keyboard | Description |
 | :--- | :--- | :--- |
-| **Zoom In** | Left Drag | Draw a box to zoom into a specific region. |
+| **Zoom Into** | Left Drag | Draw a box to zoom into a specific region. |
 | **Reset View** | Right Click | Reset the plot to the original full view. |
 | **Pan** | Right Drag | Move the view horizontally or vertically. |
 | **Zoom Scroll** | Middle Wheel | Zoom in/out centered on the cursor. |
@@ -34,9 +34,9 @@
 | **Toggle Curve** | Left Click (on legend) | Show or hide the corresponding curve. |
 | **Ruler Tool** | Middle Drag | Draw a ruler to measure distance between points. |
 | **Clear Ruler** | Middle Click | Clear all active rulers. |
-| **History Back** | Keyboard ← | Go to the previous view state. |
-| **History Forward**| Keyboard → | Go to the next view state. |
-| **Reload Uncompressed View** | Left Click  ↻ | Reload and render the view without data compression (may be time-consuming). |
+| **History View Back** | Keyboard ← | Go to the previous view state. |
+| **History View Forward**| Keyboard → | Go to the next view state. |
+| **Reload Uncompressed View** | Left Click ↻ | Reload and render the view without data compression (may be time-consuming). |
 
 ## 📦 Installation
 
@@ -237,7 +237,7 @@ Copyright (c) 2026-present Xiaosheng Yang
 | **重置视图** | 右键单击 | 将视图重置为初始的全景状态。 |
 | **平移视图** | 右键拖拽 | 水平或垂直移动视图。 |
 | **缩放视图** | 中键滚轮 | 以光标为中心进行放大/缩小。 |
-| **纵轴自适应** | 右键长按 | 自动调整 Y 轴刻度以适配当前可见数据。 |
+| **Y轴自适应** | 右键长按 | 自动调整 Y 轴刻度以适配当前可见数据。 |
 | **显示数据信息** | 左键单击 (数据点) | 显示该数据点的详细数据信息。 |
 | **隐藏数据信息** | 右键单击 (数据信息) | 移除已显示的数据信息。 |
 | **开关曲线显示** | 左键单击 (图例) | 显示或隐藏对应的曲线。 |
