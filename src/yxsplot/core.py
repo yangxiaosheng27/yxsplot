@@ -839,7 +839,7 @@ def _update_compress_data(
             compress_valid_length = np.count_nonzero(compress_data_mask)
             return compress_data_mask, compress_valid_length
 
-        assert max_compress_pixel > min_compress_pixel
+        assert max_compress_pixel >= min_compress_pixel
         length = len(x)
         try:
             x *= ax_width_pixel / ax_range_x
