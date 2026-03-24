@@ -155,7 +155,7 @@ y = np.sin(t)
 data_info = {
     "Category": ["Circle"] * n,      # Constant string for all points
     "x + y": x + y,                  # Custom value
-    "Flag (y > 0)": y > 0,                   # Boolean mask (e.g., Upper half)
+    "Flag (y > 0)": y > 0,           # Boolean mask (e.g., Upper half)
 }
 
 # --- Plot 1: Logarithmic Scale & Custom Marker ---
