@@ -29,8 +29,8 @@
 | **Pan** | Right Drag | Move the view horizontally or vertically. |
 | **Zoom Scroll** | Middle Wheel | Zoom in/out centered on the cursor. |
 | **Auto-Scale Y** | Right Long Press | Automatically adjust the Y-axis scale to fit visible data. |
-| **Show Label** | Left Click (on point) | Display data label for the specific point. |
-| **Hide Label** | Right Click (on label) | Remove the displayed data label. |
+| **Show Data Info** | Left Click (on point) | Display data info for the specific point. |
+| **Hide Data Info** | Right Click (on label) | Remove the displayed data info. |
 | **Toggle Curve** | Left Click (on legend) | Show or hide the corresponding curve. |
 | **Ruler Tool** | Middle Drag | Draw a ruler to measure distance between points. |
 | **Clear Ruler** | Middle Click | Clear all active rulers. |
@@ -151,10 +151,10 @@ x = np.cos(t)
 y = np.sin(t)
 
 # Prepare custom metadata to display in interactive data info.
-# Keys become labels, values must be arrays of length n.
+# Keys become data info, values must be arrays of length n.
 data_info = {
     "Category": ["Circle"] * n,      # Constant string for all points
-    "Tag": ["OK"] * n,               # Custom tag string
+    "x + y": x + y,                  # Custom value
     "Flag (y > 0)": y > 0,                   # Boolean mask (e.g., Upper half)
 }
 
@@ -225,7 +225,7 @@ Copyright (c) 2026-present Xiaosheng Yang
 - 🖱️ **丰富的原生交互**：全面支持鼠标左、右、中键操作，包括区域缩放、视图平移、数据标注和距离测量。
 - 📏 **内置实用工具**：包含标尺工具、时间范围滑块、颜色条以及视图历史导航功能。
 - 📊 **灵活的布局**：轻松支持多子图坐标轴共享（X/Y 轴）、对数刻度以及等比例显示。
-- 🏷️ **智能标注**：点击数据点显示/隐藏标签，点击图例切换曲线可见性，并支持自定义数据信息提示框。
+- 🏷️ **智能标注**：点击数据点显示/隐藏数据信息，点击图例切换曲线可见性，并支持自定义数据信息提示框。
 
 ## 🖱️ 交互指南
 
@@ -238,8 +238,8 @@ Copyright (c) 2026-present Xiaosheng Yang
 | **平移视图** | 右键拖拽 | 水平或垂直移动视图。 |
 | **缩放视图** | 中键滚轮 | 以光标为中心进行放大/缩小。 |
 | **纵轴自适应** | 右键长按 | 自动调整 Y 轴刻度以适配当前可见数据。 |
-| **显示数据标签** | 左键单击 (数据点) | 显示该数据点的详细信息标签。 |
-| **隐藏数据标签** | 右键单击 (标签) | 移除已显示的标签。 |
+| **显示数据信息** | 左键单击 (数据点) | 显示该数据点的详细数据信息。 |
+| **隐藏数据信息** | 右键单击 (数据信息) | 移除已显示的数据信息。 |
 | **开关曲线显示** | 左键单击 (图例) | 显示或隐藏对应的曲线。 |
 | **标尺工具** | 中键拖拽 | 绘制标尺以测量两点间的距离。 |
 | **清除标尺** | 中键单击 | 清除所有激活的标尺。 |
@@ -358,10 +358,10 @@ x = np.cos(t)
 y = np.sin(t)
 
 # 准备自定义元数据，用于在交互式数据信息框中显示。
-# 字典的键将作为标签，值必须是长度为 n 的数组。
+# 字典的键将作为数据信息，值必须是长度为 n 的数组。
 data_info = {
     "类别": ["圆形"] * n,          # 所有点共有的常量字符串
-    "标签": ["OK"] * n,            # 自定义标签字符串
+    "x + y": x + y,               # 自定义数值
     "标记 (y > 0)": y > 0,         # 布尔掩码（例如：区分上半圆，True/False）
 }
 
