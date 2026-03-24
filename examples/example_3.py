@@ -8,11 +8,11 @@ x = np.cos(t)
 y = np.sin(t)
 
 # Prepare custom metadata to display in interactive data info.
-# Keys become labels, values must be arrays of length n.
+# Keys become data info, values must be arrays of length n.
 data_info = {
     "Category": ["Circle"] * n,      # Constant string for all points
-    "Tag": ["OK"] * n,               # Custom tag string
-    "Flag (y > 0)": y > 0,                   # Boolean mask (e.g., Upper half)
+    "x + y": x + y,                  # Custom value
+    "Flag (y > 0)": y > 0,           # Boolean mask (e.g., Upper half)
 }
 
 # --- Plot 1: Logarithmic Scale & Custom Marker ---
