@@ -16,7 +16,7 @@
 - 🖱️ **Rich Native Interactions**: Full support for Left, Right, and Middle mouse button actions including zooming, panning, annotating, and measuring.
 - 📏 **Built-in Tools**: Includes ruler tools, time-range sliders, color bars, and view history navigation.
 - 📊 **Flexible Layouts**: Easy support for multi-subplot sharing (X/Y axes), logarithmic scales, and equal aspect ratios.
-- 🏷️ **Smart Annotations**: Click to show/hide data labels, click legends to toggle visibility, and custom data info tooltips.
+- 🏷️ **Smart Annotations**: Click to show/hide data info, click legends to toggle visibility, and custom data info tooltips.
 
 ## 🖱️ Interaction Guide
 
@@ -30,7 +30,7 @@
 | **Zoom Scroll** | Middle Wheel | Zoom in/out centered on the cursor. |
 | **Auto-Scale Y** | Right Long Press | Automatically adjust the Y-axis scale to fit visible data. |
 | **Show Data Info** | Left Click (on point) | Display data info for the specific point. |
-| **Hide Data Info** | Right Click (on label) | Remove the displayed data info. |
+| **Hide Data Info** | Right Click (on data info) | Remove the displayed data info. |
 | **Toggle Curve** | Left Click (on legend) | Show or hide the corresponding curve. |
 | **Ruler Tool** | Middle Drag | Draw a ruler to measure distance between points. |
 | **Clear Ruler** | Middle Click | Clear all active rulers. |
