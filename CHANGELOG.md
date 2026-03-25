@@ -8,3 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - Initial release.
 - Implemented core functionality module `core`.
+
+## [0.1.1] - 2026-03-26
+
+### Fixed
+
+- Fixed bug in clip view for compression.

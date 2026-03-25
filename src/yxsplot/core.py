@@ -6,7 +6,7 @@ Date: 2026/2/18
 Environment: python(3.12.2~3.13.12), numpy(1.26.4~2.4), matplotlib(3.8.0~3.10), mplcursors(0.5.3~0.7.1)
 """
 
-__all__ = ["plot", "show_figure"]
+__all__ = ["plot", "show_figure", "close_figure"]
 
 _DEBUG = False
 
@@ -872,6 +872,20 @@ def _update_compress_data(
             compress_pixel = 0
         return compress_data_mask, compress_valid_length, compress_pixel
 
+    def trim_out_range_mask(mask, trim=1):
+        from numpy.lib.stride_tricks import sliding_window_view
+
+        mask = np.asarray(mask, dtype=bool)
+        n = len(mask)
+        window = 2 * trim + 1
+        if n < window:
+            return np.zeros_like(mask, dtype=bool)
+        windows = sliding_window_view(mask, window)
+        valid = np.all(windows, axis=1)
+        trim_mask = np.zeros_like(mask, dtype=bool)
+        trim_mask[trim:-trim] = valid
+        return trim_mask
+
     ax_full_load_state = True
     if ax and hasattr(ax, "my_data"):
         for artist in ax.get_children():
@@ -982,6 +996,7 @@ def _update_compress_data(
                     | (y < display_range_min_y)
                     | (y > display_range_max_y)
                 )
+                invalid_mask = trim_out_range_mask(invalid_mask)
                 if timeslider_min or timeslider_max:
                     time_invalid_mask = np.ones(length, dtype=bool)
                     time_count_min = max(int(timeslider_min * length), 0)
@@ -1745,7 +1760,8 @@ def plot(
                     "• Clear Ruler:  Middle Click",
                     "• History View Back:  Keyboard ←",
                     "• History View Forward:  Keyboard →",
-                    "• Reload Uncompressed View:  Left Click " + r"$\boldsymbol{\circlearrowright}$",
+                    "• Reload Uncompressed View:  Left Click "
+                    + r"$\boldsymbol{\circlearrowright}$",
                 )
             )
         ax.my_data["help_text"] = ax.text(
@@ -1860,6 +1876,23 @@ def plot(
 
 def show_figure():
     plt.show()
+
+
+def close_figure(fig_num: int | None = None):
+    """
+    Args:
+        fig_num (int, optional): The number of the figure to close. If None, closes all figures.
+    """
+    if not isinstance(fig_num, (int, NoneType)):
+        raise TypeError(
+            f"fig_num: expected int | None, but got {type(fig_num).__name__}"
+        )
+    if fig_num is None:
+        plt.close("all")
+        _debug_print(f"closes all figures!")
+    else:
+        plt.close(fig_num)
+        _debug_print(f"closes figures {fig_num}!")
 
 
 def _test_for_single_fig():
@@ -2082,9 +2115,27 @@ def _test_for_data_info():
     )
 
 
+def _test_clip_view():
+    point = np.array(
+        [
+            [0, 0],
+            [1, 1],
+            [1, 100],
+            [1.5, 100],
+            [2, 100],
+            [2, 2],
+            [3, 3],
+        ]
+    )
+    x = point[:, 0]
+    y = point[:, 1]
+    plot(x, y)
+
+
 if __name__ == "__main__":
     _enable_debug()
     # _disable_debug()
+    close_figure()
 
     _test_for_single_fig()
     _test_for_multi_fig()
@@ -2092,5 +2143,6 @@ if __name__ == "__main__":
     _test_for_time_range()
     _test_for_share_x_and_equal_scale()
     _test_for_data_info()
+    _test_clip_view()
 
     show_figure()
