@@ -1,0 +1,18 @@
+name: Sync to Gitee
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror to Gitee
+        uses: wearerequired/git-mirror-action@v1.2.0
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+        with:
+          source-repo: git@github.com:yangxiaosheng27/yxsplot.git
+          destination-repo: git@gitee.com:yangxiaosheng27/yxsplot.git
