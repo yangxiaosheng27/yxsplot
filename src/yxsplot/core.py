@@ -6,7 +6,7 @@ Date: 2026/2/18
 Environment: python(3.12.2~3.13.12), numpy(1.26.4~2.4), matplotlib(3.8.0~3.10), mplcursors(0.5.3~0.7.1)
 """
 
-__all__ = ["plot", "show_figure", "close_figure"]
+__all__ = ["plot", "show_figure", "close_figure", "welch"]
 
 _DEBUG = False
 
@@ -29,6 +29,7 @@ from matplotlib.axes import Axes
 from types import NoneType
 import numpy as np
 import mplcursors
+import warnings
 import numbers
 import locale
 import time
@@ -1262,6 +1263,15 @@ def plot(
                               customization if needed.
     """
 
+    # Warn about unexpected parameters
+    if kwargs:
+        unexpected = ", ".join(f"'{k}'" for k in kwargs.keys())
+        warnings.warn(
+            f"plot() received unexpected parameter(s): {unexpected}. These will be ignored.",
+            UserWarning,
+            stacklevel=2,
+        )
+
     plt.rcParams["font.family"] = "Microsoft YaHei"
     # plt.rcParams.update({"font.size":5})
     plt.rcParams.update({"figure.max_open_warning": 0})
@@ -1894,6 +1904,403 @@ def close_figure(fig_num: int | None = None):
     else:
         plt.close(fig_num)
         _debug_print(f"closes figures {fig_num}!")
+
+
+def welch(
+    x: list | tuple | np.ndarray,
+    y: list | tuple | np.ndarray | None = None,
+    fs: int | float | np.number = 1.0,
+    nperseg: int | np.integer | None = None,
+    noverlap: int | np.integer | None = None,
+    seg_padded: bool = False,
+    nfft: int | np.integer | None = None,
+    window: str | list | tuple | np.ndarray = "hann",
+    detrend: str = "constant",
+    mode: str = "amplitude",
+    **kwargs,
+):
+    """
+    Welch's method for spectral analysis.
+
+    Computes the power spectral density (PSD) or other spectral quantities
+    using Welch's method of averaged periodograms.
+
+    Parameters
+    ----------
+    x : array_like
+        Input signal (time-domain data). Must be a 1-D array with length > 2.
+    y : array_like, optional
+        Output signal for transfer function estimation. If provided, must have
+        the same length as x. Default is None.
+    fs : float, optional
+        Sampling frequency in Hz. Must be positive and greater than machine epsilon.
+        Default is 1.0.
+    nperseg : int or None, optional
+        Length of each segment. If None, set to len(x) (no segmentation).
+        Must be at least 2 and cannot exceed the length of x. Default is None.
+    noverlap : int or None, optional
+        Number of points to overlap between segments. If None, set to
+        ceil(nperseg / 2). Must be less than nperseg. Default is None.
+    seg_padded : bool, optional
+        If True, pad x with zeros to make its length an integer multiple of
+        the step size (nperseg - noverlap). If False, truncate excess data.
+        Default is False.
+    nfft : int or None, optional
+        Length of the FFT used. If None, set to nperseg. Must be >= nperseg.
+        If nfft > nperseg, zero-padding is applied to increase frequency resolution.
+        Default is None.
+    window : str, array_like, or None, optional
+        Window function to apply. Options:
+        - "hann": Hann window (default)
+        - "hamm": Hamming window
+        - "black": Blackman window
+        - "flat": Flat-top window
+        - None: Rectangular window (all ones)
+        - array_like: Custom window coefficients (length must equal nperseg)
+        Default is "hann".
+    detrend : str, optional
+        Detrending method applied to each segment before windowing:
+        - "off": No detrending
+        - "constant": Remove mean (default)
+        - "linear": Remove linear trend
+        Default is "constant".
+    mode : str, optional
+        Type of spectral computation:
+        - "complex": Raw complex FFT results
+        - "amplitude": Amplitude spectrum (magnitude and phase)
+        - "power": Power spectrum
+        - "psd": Power spectral density (normalized by sampling rate)
+        - "response": Frequency response function (requires y input)
+        Default is "amplitude".
+
+    Returns
+    -------
+    result : tuple or ndarray
+        The return value depends on the mode:
+
+        - mode="complex": ndarray, shape (n_segments, nfft)
+            Raw complex FFT results for each segment.
+
+        - mode="amplitude": tuple of (freq, amp, phase)
+            - freq: ndarray of frequencies (Hz), shape (n_freq,)
+            - amp: ndarray of amplitude values, shape (n_freq,)
+            - phase: ndarray of phase values (radians), shape (n_freq,)
+
+        - mode="power": tuple of (freq, power)
+            - freq: ndarray of frequencies (Hz), shape (n_freq,)
+            - power: ndarray of power spectrum values, shape (n_freq,)
+
+        - mode="psd": tuple of (freq, psd)
+            - freq: ndarray of frequencies (Hz), shape (n_freq,)
+            - psd: ndarray of power spectral density values, shape (n_freq,)
+
+        - mode="response": tuple of (freq, gain, phase, coherence)
+            - freq: ndarray of frequencies (Hz), shape (n_freq,)
+            - gain: ndarray of magnitude response, shape (n_freq,)
+            - phase: ndarray of phase response (radians), shape (n_freq,)
+            - coherence: ndarray of magnitude-squared coherence, shape (n_freq,)
+
+    Raises
+    ------
+    TypeError
+        If input types are invalid (e.g., non-numeric x, non-boolean seg_padded).
+    ValueError
+        If parameter values are invalid (e.g., fs <= 0, nperseg < 2,
+        noverlap >= nperseg, nfft < nperseg, window size mismatch,
+        unsupported window type, invalid detrend option, invalid mode,
+        or y is None when mode="response").
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> fs = 1000.0  # Sampling frequency
+    >>> t = np.arange(0, 1, 1/fs)
+    >>> x = np.sin(2 * np.pi * 50 * t) + 0.5 * np.random.randn(len(t))
+    >>> freq, amp, phase = welch(x, fs=fs, nperseg=256, mode="amplitude")
+
+    Notes
+    -----
+    - For real signals, only the positive frequency components are returned
+      (n_freq = nfft // 2 + 1).
+    - The DC component (freq=0) and Nyquist frequency (if nfft is even) are
+      not doubled; all other components are doubled to account for the
+      one-sided spectrum.
+    - Coherence values are clipped to the range [0, 1].
+    """
+
+    # Warn about unexpected parameters
+    if kwargs:
+        unexpected = ", ".join(f"'{k}'" for k in kwargs.keys())
+        warnings.warn(
+            f"welch() received unexpected parameter(s): {unexpected}. These will be ignored.",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    def get_window(window, n):
+        """Generate window coefficients."""
+        if window is None:
+            return np.ones(n)
+        elif isinstance(window, str):
+            k = np.arange(n)
+            if window.lower() == "hann":
+                return 0.5 - 0.5 * np.cos(2.0 * np.pi * k / n)
+            elif window.lower() == "hamm":
+                return 0.54 - 0.46 * np.cos(2.0 * np.pi * k / n)
+            elif window.lower() == "black":  # Blackman
+                return (
+                    0.42
+                    - 0.5 * np.cos(2.0 * np.pi * k / n)
+                    + 0.08 * np.cos(4.0 * np.pi * k / n)
+                )
+            elif window.lower() == "flat":  # Flattop
+                return (
+                    0.21557895
+                    - 0.41663158 * np.cos(2.0 * np.pi * k / n)
+                    + 0.277263158 * np.cos(4.0 * np.pi * k / n)
+                    - 0.083578947 * np.cos(6.0 * np.pi * k / n)
+                    + 0.006947368 * np.cos(8.0 * np.pi * k / n)
+                )
+            else:
+                raise ValueError(
+                    f"Unsupported window type: '{window}'. "
+                    f"Supported options: 'hann', 'hamm', 'black', 'flat', or None."
+                )
+        elif isinstance(window, (list, tuple, np.ndarray)):
+            window_arr = np.asarray(window)
+            if window_arr.ndim != 1:
+                raise ValueError(
+                    f"Window must be 1-D array, got shape {window_arr.shape}"
+                )
+            if len(window_arr) != n:
+                raise ValueError(
+                    f"Window length ({len(window_arr)}) must equal nperseg ({n})"
+                )
+            return window_arr
+        else:
+            raise TypeError(
+                f"Window must be a string, array_like, or None, "
+                f"got type {type(window).__name__}"
+            )
+
+    def detrend_linear(x):
+        """Remove linear trend from data."""
+        x = np.asarray(x)
+        n = x.size
+        if n <= 1:
+            return x - x.mean()
+        t = np.arange(n, dtype=x.dtype)
+        a = np.dot(t, x - x.mean()) * 12.0 / (n * (n * n - 1.0))
+        b = x.mean() - a * (n - 1.0) / 2.0
+        return x - (a * t + b)
+
+    # ============ Input Type Checking ============
+    # Check x type
+    if not isinstance(x, (list, tuple, np.ndarray)):
+        raise TypeError(f"x must be array_like, got type {type(x).__name__}")
+    x = np.asarray(x)
+    if x.ndim == 0:
+        raise ValueError("x cannot be a scalar")
+    if x.ndim > 1:
+        raise ValueError(f"x must be 1-D array, got shape {x.shape}")
+    # Check y type if provided
+    if y is not None:
+        if not isinstance(y, (list, tuple, np.ndarray)):
+            raise TypeError(
+                f"y must be array_like or None, got type {type(y).__name__}"
+            )
+        y = np.asarray(y)
+        if y.ndim == 0:
+            raise ValueError("y cannot be a scalar")
+        if y.ndim > 1:
+            raise ValueError(f"y must be 1-D array, got shape {y.shape}")
+    # Check fs type and value
+    if not isinstance(fs, (int, float, np.number)):
+        raise TypeError(f"fs must be numeric, got type {type(fs).__name__}")
+    fs = float(fs)
+    # Check seg_padded type
+    if not isinstance(seg_padded, bool):
+        raise TypeError(
+            f"seg_padded must be boolean, got type {type(seg_padded).__name__}"
+        )
+    # Check detrend type
+    if not isinstance(detrend, str):
+        raise TypeError(
+            f"detrend must be 'off', 'constant' or 'linear', "
+            f"got type {type(detrend).__name__}"
+        )
+    if detrend.lower() not in ("off", "constant", "linear"):
+        raise ValueError(
+            f"detrend must be 'off', 'constant' or 'linear', got '{detrend}'"
+        )
+    # Check mode type
+    if not isinstance(mode, str):
+        raise TypeError(f"mode must be a string, got type {type(mode).__name__}")
+    mode = mode.lower()
+    valid_modes = ("complex", "amplitude", "power", "psd", "response")
+    if mode not in valid_modes:
+        raise ValueError(f"mode must be one of {valid_modes}, got '{mode}'")
+    # ============ Value Checking ============
+    eps = np.finfo(float).eps
+    # Check signal length
+    if len(x) <= 2:
+        raise ValueError(f"Length of x ({len(x)}) must be greater than 2")
+    # Check sampling frequency
+    if fs <= eps:
+        raise ValueError(
+            f"Sampling frequency fs ({fs}) must be greater than machine epsilon ({eps})"
+        )
+    # Reshape to 1-D
+    x = x.reshape(-1)
+    n = len(x)
+    if y is not None:
+        y = y.reshape(-1)
+        if len(y) != n:
+            raise ValueError(f"Length of y ({len(y)}) must equal length of x ({n})")
+    # Check nperseg
+    if nperseg is None:
+        nperseg = n
+    else:
+        if not isinstance(nperseg, (int, np.integer)):
+            raise TypeError(
+                f"nperseg must be an integer or None, got type {type(nperseg).__name__}"
+            )
+        nperseg = int(nperseg)
+        if nperseg < 2:
+            raise ValueError(f"nperseg ({nperseg}) must be at least 2")
+        if nperseg > n:
+            raise ValueError(f"nperseg ({nperseg}) cannot exceed signal length ({n})")
+    # Check nfft
+    if nfft is None:
+        nfft = nperseg
+    else:
+        if not isinstance(nfft, (int, np.integer)):
+            raise TypeError(
+                f"nfft must be an integer or None, got type {type(nfft).__name__}"
+            )
+        nfft = int(nfft)
+        if nfft < nperseg:
+            raise ValueError(
+                f"nfft ({nfft}) must be greater than or equal to nperseg ({nperseg})"
+            )
+    # Check noverlap
+    if noverlap is None:
+        noverlap = int(np.ceil(nperseg / 2))
+    else:
+        if not isinstance(noverlap, (int, np.integer)):
+            raise TypeError(
+                f"noverlap must be an integer or None, got type {type(noverlap).__name__}"
+            )
+        if noverlap >= nperseg:
+            raise ValueError(
+                f"noverlap ({noverlap}) must be less than nperseg ({nperseg})"
+            )
+        if noverlap < 0:
+            raise ValueError(f"noverlap ({noverlap}) must be non-negative")
+    # Initialize nstep
+    nstep = nperseg - noverlap
+    # Segment padding
+    if seg_padded:
+        nadd = (nperseg - (n - nperseg) % nstep) % nperseg
+        x = np.append(x, np.zeros(nadd))
+        if y is not None:
+            y = np.append(y, np.zeros(nadd))
+        n = len(x)
+    # Initialize nseg
+    nseg = (n - noverlap) // nstep
+    # Initialize FFT result arrays
+    fft_result_x = np.zeros((nseg, nfft), dtype=complex)
+    if y is not None:
+        fft_result_y = np.zeros((nseg, nfft), dtype=complex)
+    # Get window coefficients
+    win = get_window(window, nperseg)
+    if np.sum(win) <= eps:
+        raise ValueError(
+            f"Sum of window coefficients ({np.sum(win)}) is too small (<= eps)"
+        )
+    # Process segments
+    for i in range(nseg):
+        start_idx = nstep * i
+        end_idx = nperseg + nstep * i
+        x_seg = np.copy(x[start_idx:end_idx])
+        if y is not None:
+            y_seg = np.copy(y[start_idx:end_idx])
+        # Detrend
+        if detrend.lower() == "constant":
+            x_seg = x_seg - x_seg.mean()
+            if y is not None:
+                y_seg = y_seg - y_seg.mean()
+        elif detrend.lower() == "linear":
+            x_seg = detrend_linear(x_seg)
+            if y is not None:
+                y_seg = detrend_linear(y_seg)
+        # Apply window
+        x_seg = x_seg * win
+        if y is not None:
+            y_seg = y_seg * win
+        # Zero-pad for FFT
+        if nfft > nperseg:
+            nfftadd = nfft - nperseg
+            x_seg = np.append(x_seg, np.zeros(nfftadd))
+            if y is not None:
+                y_seg = np.append(y_seg, np.zeros(nfftadd))
+        # Compute FFT
+        fft_result_x[i, :] = np.fft.fft(x_seg, nfft)
+        if y is not None:
+            fft_result_y[i, :] = np.fft.fft(y_seg, nfft)
+    # Compute frequency axis
+    nfreq = nfft // 2 + 1
+    freq = np.arange(0, nfreq) / nfft * fs
+    # ============ Mode-specific computations ============
+    if mode == "complex":
+        return fft_result_x
+    elif mode == "amplitude":
+        fft_result_x = fft_result_x[:, 0:nfreq]
+        scale = 1.0 / np.sum(win)
+        amp = np.abs(fft_result_x).mean(axis=0) * scale
+        phase = np.angle(fft_result_x).mean(axis=0)
+        # Double all frequencies except DC and Nyquist (if even)
+        if nfft % 2:
+            amp[1:nfreq] *= 2.0
+        else:
+            amp[1 : (nfreq - 1)] *= 2.0
+        return freq, amp, phase
+    elif mode == "power" or mode == "psd":
+        fft_result_x = fft_result_x[:, 0:nfreq]
+        if mode == "power":
+            scale = 1.0 / np.sum(win) ** 2
+        else:  # psd
+            scale = 1.0 / np.sum(win**2) / fs
+        Pxx = np.conj(fft_result_x) * fft_result_x * scale
+        Pxx = Pxx.real.mean(axis=0)
+        # Double all frequencies except DC and Nyquist (if even)
+        if nfft % 2:
+            Pxx[1:nfreq] *= 2.0
+        else:
+            Pxx[1 : (nfreq - 1)] *= 2.0
+        return freq, Pxx
+    elif mode == "response":
+        if y is None:
+            raise ValueError(
+                "Mode 'response' requires both x and y inputs. y cannot be None."
+            )
+        fft_result_x = fft_result_x[:, 0:nfreq]
+        fft_result_y = fft_result_y[:, 0:nfreq]
+        # Compute cross-spectral densities
+        Cxx = (np.conj(fft_result_x) * fft_result_x).mean(axis=0)
+        Cxy = (np.conj(fft_result_x) * fft_result_y).mean(axis=0)
+        Cyy = (np.conj(fft_result_y) * fft_result_y).mean(axis=0)
+        # Avoid division by zero
+        Cxx.real = np.where(Cxx.real <= eps, eps, Cxx.real)
+        Cyy.real = np.where(Cyy.real <= eps, eps, Cyy.real)
+        # Frequency response
+        response = Cxy / Cxx
+        gain = np.abs(response)
+        phase = np.angle(response)
+        # Magnitude-squared coherence
+        coherence = np.abs(Cxy * Cxy / Cxx / Cyy)
+        coherence = np.clip(coherence, 0.0, 1.0)
+        return freq, gain, phase, coherence
 
 
 def _test_for_single_fig():

@@ -7,6 +7,6 @@ try:
 except ImportError:
     __version__ = "0+unknown"
 
-from .core import plot, show_figure, close_figure
+from .core import plot, show_figure, close_figure, welch
 
-__all__ = ["plot", "show_figure", "close_figure"]
+__all__ = ["plot", "show_figure", "close_figure", "welch"]
