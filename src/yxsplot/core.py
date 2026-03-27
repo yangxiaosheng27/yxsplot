@@ -1273,7 +1273,7 @@ def plot(
         x = np.where(np.isfinite(x), x, np.nan)
         y = np.where(np.isfinite(y), y, np.nan)
     elif len(args) == 1:
-        x = np.array(list(range(len(args[0]))))
+        x = np.arange(len(args[0]), dtype=np.float64)
         y = np.array(args[0], dtype=np.float64)
         y = np.where(np.isfinite(y), y, np.nan)
     else:
