@@ -64,10 +64,8 @@ y = np.sin(x)
 # Create an interactive plot
 # 'mask' allows you to filter data visually without changing the source array
 ax = plot(
-    x,
     y,
     data_name="Sine Wave (y > -0.5)",
-    x_name="Time (s)",
     y_name="Amplitude",
     title="Basic Plotting Demo (1M Points)",
     mask=y > -0.5,  # Only display points where y > -0.5
@@ -274,10 +272,8 @@ y = np.sin(x)
 # 'mask' 参数允许你在不修改原始数据数组的情况下，通过布尔索引进行视觉过滤。
 # 只有满足条件的点会被渲染，这能显著提高大数据量下的局部查看性能或突出特定区域。
 ax = plot(
-    x,
     y,
     data_name="正弦波（y > -0.5）",
-    x_name="时间 (s)",
     y_name="振幅",
     title="基础绘图演示 (100 万数据点)",
     mask=y > -0.5,  # 仅显示 y > -0.5 的数据点

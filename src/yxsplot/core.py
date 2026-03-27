@@ -1277,8 +1277,9 @@ def plot(
         y = np.array(args[0], dtype=np.float64)
         y = np.where(np.isfinite(y), y, np.nan)
     else:
-        x = []
-        y = []
+        raise TypeError(
+            f"plot() takes 1 or 2 positional arguments but {len(args)} were given"
+        )
     if len(x) == 0 or len(y) == 0 or len(x) != len(y):
         raise ValueError(f"len(x) = {len(x)}, len(y) = {len(y)}")
     length = min(len(x), len(y))

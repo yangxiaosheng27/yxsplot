@@ -9,10 +9,8 @@ y = np.sin(x)
 # Create an interactive plot
 # 'mask' allows you to filter data visually without changing the source array
 ax = plot(
-    x,
     y,
     data_name="Sine Wave (y > -0.5)",
-    x_name="Time (s)",
     y_name="Amplitude",
     title="Basic Plotting Demo (1M Points)",
     mask=y > -0.5,  # Only display points where y > -0.5
