@@ -32,7 +32,6 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/yangxiaosheng27/yxsplot"
 Repository = "https://github.com/yangxiaosheng27/yxsplot"
-Changelog = "https://github.com/yangxiaosheng27/yxsplot/blob/master/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
