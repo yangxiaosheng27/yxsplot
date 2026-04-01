@@ -758,7 +758,7 @@ def _call_back_on_scroll(event):
 
 def _update_compress_data(
     ax,
-    compress_length=1000,
+    compress_length=2000,
     zoom_in_factor=2,
     zoom_out_factor=2,
     full_load=False,
@@ -815,6 +815,7 @@ def _update_compress_data(
         ax_height_pixel,
         max_compress_pixel=20,
         min_compress_pixel=1,
+        valid_data_mask=None,
     ):
 
         def point_to_segment_distance(points):
@@ -833,9 +834,12 @@ def _update_compress_data(
                 d = point_to_segment_distance(points)
             d = np.where(np.isfinite(d), d, 0)
             sum_d = np.cumsum(d)
-            valid_mask = np.diff(sum_d // compress_pixel) > 0
+            valid_pixel_mask = np.diff(sum_d // compress_pixel) > 0
             compress_data_mask = np.concatenate(
-                [np.isfinite(x[: (length - len(valid_mask))]), valid_mask]
+                [
+                    np.isfinite(valid_data_mask[: (length - len(valid_pixel_mask))]),
+                    valid_pixel_mask,
+                ]
             )
             compress_valid_length = np.count_nonzero(compress_data_mask)
             return compress_data_mask, compress_valid_length
@@ -843,6 +847,9 @@ def _update_compress_data(
         assert max_compress_pixel >= min_compress_pixel
         length = len(x)
         try:
+            if valid_data_mask is None:
+                valid_data_mask = np.isfinite(x) & np.isfinite(y)
+
             x *= ax_width_pixel / ax_range_x
             y *= ax_height_pixel / ax_range_y
             points = np.stack((x, y), axis=1)
@@ -866,6 +873,10 @@ def _update_compress_data(
                         compress_data_mask, compress_valid_length = compress_handle(
                             compress_pixel
                         )
+            compress_data_mask[:-1] = compress_data_mask[:-1] | (
+                valid_data_mask[:-1] & ~valid_data_mask[1:]
+            )
+            compress_data_mask[-1] = valid_data_mask[-1]
         except Exception as e:
             print("\ncompress_data: %s" % str(e))
             compress_data_mask = np.ones(length, dtype=bool)
@@ -1033,6 +1044,7 @@ def _update_compress_data(
                             ax_width_pixel,
                             ax_height_pixel,
                             max_compress_pixel=max_compress_pixel,
+                            valid_data_mask=valid_data_mask,
                         )
                     )
                     t1 = time.time()
@@ -1467,12 +1479,23 @@ def plot(
     if mask is None:
         mask = []
     mask = np.array(mask, dtype=bool)
-    # init fig, ax
-    fig = (
-        plt.figure(num=fig_num, dpi=dpi)
-        if fig_num is not None
-        else plt.figure(dpi=dpi) if new_fig else plt.gcf()
-    )
+    # init fig, new_fig
+    if fig_num is None and new_fig:
+        fig = plt.figure(dpi=dpi)
+    else:
+        if fig_num is None:
+            fig_nums = plt.get_fignums()
+            fig_num = max(fig_nums) if fig_nums else 1
+        if plt.fignum_exists(fig_num):
+            if new_fig:
+                plt.close(fig_num)
+                fig = plt.figure(dpi=dpi)
+            else:
+                fig = plt.figure(num=fig_num)
+        else:
+            fig = plt.figure(num=fig_num, dpi=dpi)
+            new_fig = True
+    # init ax
     if new_fig:
         fig.clf()
         ax = fig.add_subplot(1, 1, 1, sharex=share_x, sharey=share_y)
@@ -2540,9 +2563,45 @@ def _test_clip_view():
     plot(x, y)
 
 
+def _test_mask():
+    n = 100_000
+    x = np.zeros(n)
+    y = np.zeros(n)
+    m = 1
+    y[:m] = 1
+    y[10_000 : 10_000 + m] = 1
+    y[20_000:50_000] = 1
+    y[-m:] = 1
+    plot(x, data_name="x")
+    plot(y, data_name="y", mask=y > 0, new_fig=False)
+
+
+def _test_fig_num():
+    try:
+        plot([1, 2, 3], data_name="data 1", fig_num=101, new_fig=True)
+    except Exception as e:
+        print(f"data 1: {str(e)}")
+    try:
+        plot([1, 2, 3], data_name="data 2", fig_num=101, new_fig=False)
+    except Exception as e:
+        print(f"data 2: {str(e)}")
+    try:
+        plot([1, 2, 3], data_name="data 3", fig_num=102, new_fig=False)
+    except Exception as e:
+        print(f"data 3: {str(e)}")
+    try:
+        plot([1, 2, 3], data_name="data 4", fig_num=102, new_fig=True)
+    except Exception as e:
+        print(f"data 4: {str(e)}")
+    try:
+        plot([1, 2, 3], data_name="data 5", fig_num=102, new_fig=True)
+    except Exception as e:
+        print(f"data 5: {str(e)}")
+
+
 if __name__ == "__main__":
+    _disable_debug()
     _enable_debug()
-    # _disable_debug()
     close_figure()
 
     _test_for_single_fig()
@@ -2552,5 +2611,7 @@ if __name__ == "__main__":
     _test_for_share_x_and_equal_scale()
     _test_for_data_info()
     _test_clip_view()
+    _test_mask()
+    _test_fig_num()
 
     show_figure()
