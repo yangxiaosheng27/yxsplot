@@ -9,6 +9,7 @@ Environment: python(3.12.2~3.13.12), numpy(1.26.4~2.4), matplotlib(3.8.0~3.10), 
 __all__ = ["plot", "show_figure", "close_figure", "welch"]
 
 _DEBUG = False
+_LANGUAGE = "auto"
 
 # import matplotlib
 # matplotlib.use("QtAgg")
@@ -43,6 +44,30 @@ def _enable_debug():
 def _disable_debug():
     global _DEBUG
     _DEBUG = False
+
+
+def _set_language(language):
+    global _LANGUAGE
+    _LANGUAGE = str(language).lower()
+
+
+def _get_language():
+    global _LANGUAGE
+    return str(_LANGUAGE).lower()
+
+
+def _check_language_Chinese():
+    try:
+        if _get_language() == "auto":
+            lang, _ = locale.getlocale()
+            if lang:
+                if lang.startswith("Chinese") or lang.startswith("zh"):
+                    return True
+        elif _get_language() == "chinese":
+            return True
+    except:
+        pass
+    return False
 
 
 def _debug_print(*args, **kwargs):
@@ -1116,17 +1141,6 @@ def _hide_toolbar(fig):
             toolbar.pack_forget()
     except:
         pass
-
-
-def _check_language_Chinese():
-    try:
-        lang, _ = locale.getlocale()
-        if lang:
-            if lang.startswith("Chinese") or lang.startswith("zh"):
-                return True
-    except:
-        pass
-    return False
 
 
 def plot(
