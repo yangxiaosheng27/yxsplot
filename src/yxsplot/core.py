@@ -862,7 +862,7 @@ def _update_compress_data(
             valid_pixel_mask = np.diff(sum_d // compress_pixel) > 0
             compress_data_mask = np.concatenate(
                 [
-                    np.isfinite(valid_data_mask[: (length - len(valid_pixel_mask))]),
+                    valid_data_mask[: (length - len(valid_pixel_mask))],
                     valid_pixel_mask,
                 ]
             )
@@ -2613,6 +2613,12 @@ def _test_fig_num():
         print(f"data 5: {str(e)}")
 
 
+def _test_for_compress():
+    x = np.concatenate([np.zeros(100_000), np.arange(100_000)])
+    y = x
+    plot(x, y)
+
+
 if __name__ == "__main__":
     _disable_debug()
     _enable_debug()
@@ -2627,5 +2633,6 @@ if __name__ == "__main__":
     _test_clip_view()
     _test_mask()
     _test_fig_num()
+    _test_for_compress()
 
     show_figure()
