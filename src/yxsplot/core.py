@@ -1658,7 +1658,7 @@ def plot(
     if (
         max_compress_pixel
         and not hasattr(fig, "my_timeslider")
-        and np.any(x[1:] <= x[:1])
+        and np.any(x[1:] <= x[:-1])
     ):
         bbox = ax.get_position()
         tightbbox = ax.get_tightbbox(fig.canvas.get_renderer())
