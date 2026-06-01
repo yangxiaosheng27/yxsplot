@@ -845,12 +845,17 @@ def _update_compress_data(
 
         def point_to_segment_distance(points):
             P, A, B = points[2:], points[:-2], points[1:-1]
+            A_has_nan = np.isnan(A).any(axis=1)
             AB, AP = B - A, P - A
             dot = np.einsum("ij,ij->i", AP, AB, optimize=True)
             len_sq = np.einsum("ij,ij->i", AB, AB, optimize=True)
             t = np.clip(dot / np.where(len_sq == 0, 1.0, len_sq), 0.0, 1.0)
             C = A + t[:, None] * AB
-            return np.sqrt(np.einsum("ij,ij->i", P - C, P - C, optimize=True))
+            d1 = np.einsum("ij,ij->i", P - C, P - C, optimize=True)
+            d2 = np.einsum("ij,ij->i", P - B, P - B, optimize=True)
+            d = np.where(A_has_nan, d2, d1)
+            d = np.sqrt(d)
+            return d
 
         def compress_handle(compress_pixel, method=1):
             if method == 0:
@@ -860,6 +865,7 @@ def _update_compress_data(
             d = np.where(np.isfinite(d), d, 0)
             sum_d = np.cumsum(d)
             valid_pixel_mask = np.diff(sum_d // compress_pixel) > 0
+            valid_pixel_mask |= np.append(valid_pixel_mask[1:], False)
             compress_data_mask = np.concatenate(
                 [
                     valid_data_mask[: (length - len(valid_pixel_mask))],
