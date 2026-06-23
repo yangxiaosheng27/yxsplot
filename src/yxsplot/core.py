@@ -290,16 +290,16 @@ def _call_back_on_add_cursor(sel):
         raw_y = sel.artist.my_data["raw_y"]
         raw_color = sel.artist.my_data["raw_color"]
         raw_index = np.flatnonzero(sel.artist.my_data["compress_data_mask"])[index]
-        text += f"({raw_x[raw_index]:g}, {raw_y[raw_index]:g})"
+        text += f"({raw_x[raw_index]:.9g}, {raw_y[raw_index]:.9g})"
         if len(raw_color):
-            text += f"\ncolor: {raw_color[raw_index]:g}"
+            text += f"\ncolor: {raw_color[raw_index]:.9g}"
         # get data_info
         data_info = sel.artist.my_data["data_info"]
         if data_info is not None:
             for key in data_info:
                 value = data_info[key][raw_index]
                 if isinstance(value, numbers.Number) and not isinstance(value, bool):
-                    text += f"\n{key}: {value:g}"
+                    text += f"\n{key}: {value:.9g}"
                 else:
                     text += f"\n{key}: {value}"
         sel.annotation.set_text(text)
