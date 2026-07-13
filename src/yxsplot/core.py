@@ -343,6 +343,11 @@ def _call_back_on_pick(event):
         ax.my_data["full_load_button"].set_visible(False)
         ax.my_data["full_load"] = True
         ax.figure.canvas.draw_idle()
+    elif event.artist is ax.my_data["figure_options_button"]:
+        try:
+            ax.figure.canvas.manager.toolbar.edit_parameters()
+        except:
+            pass
     ax.figure.my_data["current_ax"] = ax
 
 
@@ -1754,6 +1759,8 @@ def plot(
             "help_button": None,
             # compress
             "full_load": False,
+            # figure options button
+            "figure_options_button": None,
         }
     # update ax.my_data
     ax.my_data["equal_scale"] = equal_scale
@@ -1869,6 +1876,24 @@ def plot(
             ),
             picker=True,
             visible=False,
+        )
+        ax.my_data["figure_options_button"] = ax.text(
+            1.07,
+            1.12,
+            "\u2699",
+            fontfamily="sans-serif",
+            transform=ax.transAxes,
+            fontsize=12,
+            fontweight="bold",
+            color="white",
+            va="top",
+            ha="left",
+            bbox=dict(
+                boxstyle="circle, pad=0.3",
+                facecolor=(0.5, 0.5, 0.5, 0.6),
+                edgecolor="none",
+            ),
+            picker=True,
         )
     # create cursor
     if "cursor" in ax.my_data:
