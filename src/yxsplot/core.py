@@ -788,7 +788,8 @@ def _call_back_on_scroll(event):
 
 def _update_compress_data(
     ax,
-    compress_length=2000,
+    uncompress_data_length=2000,
+    max_darw_data_length=1000_000,
     zoom_in_factor=2,
     zoom_out_factor=2,
     full_load=False,
@@ -868,6 +869,7 @@ def _update_compress_data(
             else:
                 d = point_to_segment_distance(points)
             d = np.where(np.isfinite(d), d, 0)
+            d = d.astype(np.float64)
             sum_d = np.cumsum(d)
             valid_pixel_mask = np.diff(sum_d // compress_pixel) > 0
             valid_pixel_mask |= np.append(valid_pixel_mask[1:], False)
@@ -900,9 +902,9 @@ def _update_compress_data(
                 compress_data_mask, compress_valid_length = compress_handle(
                     min_compress_pixel
                 )
-                if compress_valid_length > compress_length:
+                if compress_valid_length > uncompress_data_length:
                     compress_pixel = int(
-                        min_compress_pixel * compress_valid_length / compress_length
+                        min_compress_pixel * compress_valid_length / uncompress_data_length
                     )
                     compress_pixel = min(compress_pixel, max_compress_pixel)
                     if compress_pixel > min_compress_pixel:
@@ -1061,7 +1063,7 @@ def _update_compress_data(
                     [[False], ~valid_data_mask[1:] & valid_data_mask[:-1]]
                 )
                 if (
-                    valid_length <= compress_length
+                    valid_length <= uncompress_data_length
                     or full_load
                     or not max_compress_pixel
                 ):
@@ -1107,10 +1109,15 @@ def _update_compress_data(
                         if len(raw_color):
                             compressed_color = raw_color
                     else:
-                        compressed_x = raw_x[compress_data_mask]
-                        compressed_y = raw_y[compress_data_mask]
+                        if max_draw_data_length:
+                            step = compress_data_mask.sum() // max_draw_data_length
+                            step = int(max(step, 1))
+                        else:
+                            step = 1
+                        compressed_x = raw_x[compress_data_mask][::step]
+                        compressed_y = raw_y[compress_data_mask][::step]
                         if len(raw_color):
-                            compressed_color = raw_color[compress_data_mask]
+                            compressed_color = raw_color[compress_data_mask][::step]
                     if isinstance(artist, Line2D):  #  from plot()
                         artist.set_xdata(compressed_x)
                         artist.set_ydata(compressed_y)
