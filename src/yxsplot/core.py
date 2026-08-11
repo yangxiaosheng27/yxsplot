@@ -789,7 +789,7 @@ def _call_back_on_scroll(event):
 def _update_compress_data(
     ax,
     uncompress_data_length=2000,
-    max_darw_data_length=1000_000,
+    max_draw_data_length=1000_000,
     zoom_in_factor=2,
     zoom_out_factor=2,
     full_load=False,
